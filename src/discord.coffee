@@ -86,7 +86,7 @@ class DiscordBot extends Adapter
         return if isOnline(oldUser.status) == isOnline(newUser.status)
 
         user = @robot.brain.userForId newUser.id
-        user.name = newUser.name
+        user.name = newUser.username
         user.id = newUser.id
         user.discriminator = newUser.discriminator
         if isOnline(newUser.status)
