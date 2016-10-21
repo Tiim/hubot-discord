@@ -78,7 +78,7 @@ class DiscordBot extends Adapter
         # ignore self satatus update
         return if newUser.id == @client.user.id
 
-        @robot.logger.info newUser.name + ':' + oldUser.status + '-->' + newUser.status
+        @robot.logger.info newUser.username + ':' + oldUser.status + '-->' + newUser.status
 
         isOnline = (status) -> status != 'offline'
 
