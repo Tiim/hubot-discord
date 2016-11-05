@@ -82,13 +82,16 @@ class DiscordBot extends Adapter
 
         isOnline = (status) -> status != 'offline'
 
-        # ignore status changes if the user switches between 'online', 'busy' and 'do not disturb'
-        return if isOnline(oldUser.status) == isOnline(newUser.status)
-
         user = @robot.brain.userForId newUser.id
         user.name = newUser.username
         user.id = newUser.id
         user.discriminator = newUser.discriminator
+        # save user status for scripts to use
+        user.status = newUser.status
+
+        # ignore status changes if the user switches between 'online', 'busy' and 'do not disturb'
+        return if isOnline(oldUser.status) == isOnline(newUser.status)
+
         if isOnline(newUser.status)
           @receive new EnterMessage(user, null, 0)
         else
