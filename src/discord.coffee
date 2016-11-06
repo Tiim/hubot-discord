@@ -50,9 +50,19 @@ class DiscordBot extends Adapter
         @emit "connected"
 
         #post-connect actions
+        @client.users.forEach (u, k) =>
+          unless u.presence.status == "offline" || u.id == @client.user.id
+            user = @robot.brain.userForId u.id
+            user.name = u.username
+            user.discriminator = u.discriminator
+            user.id = u.id
+            user.status = u.presence.status
+
         @rooms[channel.id] = channel for channel in @client.channels
-        @client.user.setStatus('online', currentlyPlaying)
+        @client.user.setGame(currentlyPlaying)
           .then(@robot.logger.debug("Status set to #{currentlyPlaying}"))
+          .catch(@robot.logger.error)
+        @client.user.setStatus('online')
           .catch(@robot.logger.error)
 
      message: (message) =>
@@ -74,25 +84,29 @@ class DiscordBot extends Adapter
         @robot.logger.debug text
         @receive new TextMessage( user, text, message.id )
 
-     userStatusUpdate: (oldUser, newUser) =>
-        # ignore self satatus update
-        return if newUser.id == @client.user.id
+     userStatusUpdate: (oldMember, newMember) =>
+        user = newMember.user
+        oldPresence = oldMember.presence.status
+        newPresence = newMember.presence.status
 
-        @robot.logger.info newUser.username + ':' + oldUser.status + '-->' + newUser.status
+        # ignore self satatus update
+        return if user.id == @client.user.id
+
+        @robot.logger.info user.username + ':' + oldPresence + '-->' + newPresence
 
         isOnline = (status) -> status != 'offline'
 
-        user = @robot.brain.userForId newUser.id
-        user.name = newUser.username
-        user.id = newUser.id
-        user.discriminator = newUser.discriminator
+        user = @robot.brain.userForId user.id
+        user.name = user.username
+        user.id = user.id
+        user.discriminator = user.discriminator
         # save user status for scripts to use
-        user.status = newUser.status
+        user.status = newPresence
 
         # ignore status changes if the user switches between 'online', 'busy' and 'do not disturb'
-        return if isOnline(oldUser.status) == isOnline(newUser.status)
+        return if isOnline(oldPresence) == isOnline(newPresence)
 
-        if isOnline(newUser.status)
+        if isOnline(newPresence)
           @receive new EnterMessage(user, null, 0)
         else
           @receive new LeaveMessage(user, null, 0)
