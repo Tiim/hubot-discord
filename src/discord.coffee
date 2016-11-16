@@ -29,7 +29,7 @@ class DiscordBot extends Adapter
           @robot.logger.error "Error: Environment variable named `HUBOT_DISCORD_TOKEN` required"
           return
 
-        @robot.brain.on 'loaded', ->
+        @robot.brain.on 'loaded', =>
           #reset all users to offline
           for id, user of @robot.brain.users()
             if user.status != "online"
