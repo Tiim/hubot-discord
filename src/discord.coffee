@@ -32,9 +32,9 @@ class DiscordBot extends Adapter
         @robot.brain.on 'loaded', =>
           #reset all users to offline
           for id, user of @robot.brain.users()
-            if user.status != "online"
+            if user.status != "offline"
               user.status = "offline"
-              @robot.logger.info "reset user #{user}: #{user.status} -> offline"
+              @robot.logger.info "reset user #{user.name}: #{user.status} -> offline"
 
      run: ->
         @options =
