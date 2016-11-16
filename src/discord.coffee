@@ -50,7 +50,7 @@ class DiscordBot extends Adapter
         @emit "connected"
 
         #reset all users to offline
-        for id, user of @robot.brain.users
+        for id, user of @robot.brain.users()
           if user?.status?
             user.status = "offline"
 
