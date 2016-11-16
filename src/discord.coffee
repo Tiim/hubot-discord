@@ -49,6 +49,11 @@ class DiscordBot extends Adapter
         @robot.logger.info "Robot Name: #{@robot.name}"
         @emit "connected"
 
+        #reset all users to offline
+        for id, user of @robot.brain.users
+          if user?.status?
+            user.status = "offline"
+
         #post-connect actions
         @client.users.forEach (u, k) =>
           unless u.presence.status == "offline" || u.id == @client.user.id
