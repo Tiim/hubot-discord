@@ -29,12 +29,15 @@ class DiscordBot extends Adapter
           @robot.logger.error "Error: Environment variable named `HUBOT_DISCORD_TOKEN` required"
           return
 
+        brainAlreadyLoaded = false
         @robot.brain.on 'loaded', =>
           #reset all users to offline
-          for id, user of @robot.brain.users()
-            if user.status != "offline"
-              @robot.logger.info "reset user #{user.name}: #{user.status} -> offline"
-              user.status = "offline"
+          unless brainAlreadyLoaded
+            brainAlreadyLoaded = true
+            for id, user of @robot.brain.users()
+              if user.status != "offline"
+                @robot.logger.info "reset user #{user.name}: #{user.status} -> offline"
+                user.status = "offline"
 
      run: ->
         @options =
@@ -103,20 +106,20 @@ class DiscordBot extends Adapter
 
         isOnline = (status) -> status != 'offline'
 
-        user = @robot.brain.userForId user.id
-        user.name = user.username
-        user.id = user.id
-        user.discriminator = user.discriminator
+        brainuser = @robot.brain.userForId user.id
+        brainuser.name = user.username
+        brainuser.id = user.id
+        brainuser.discriminator = user.discriminator
         # save user status for scripts to use
-        user.status = newPresence
-
+        brainuser.status = newPresence
+        console.log brainuser
         # ignore status changes if the user switches between 'online', 'busy' and 'do not disturb'
         return if isOnline(oldPresence) == isOnline(newPresence)
 
         if isOnline(newPresence)
-          @receive new EnterMessage(user, null, 0)
+          @receive new EnterMessage(brainuser, null, 0)
         else
-          @receive new LeaveMessage(user, null, 0)
+          @receive new LeaveMessage(brainuser, null, 0)
 
      disconnected: =>
         @robot.logger.info "#{@robot.name} Disconnected, will auto reconnect soon..."
