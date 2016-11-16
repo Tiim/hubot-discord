@@ -112,7 +112,6 @@ class DiscordBot extends Adapter
         brainuser.discriminator = user.discriminator
         # save user status for scripts to use
         brainuser.status = newPresence
-        console.log brainuser
         # ignore status changes if the user switches between 'online', 'busy' and 'do not disturb'
         return if isOnline(oldPresence) == isOnline(newPresence)
 
