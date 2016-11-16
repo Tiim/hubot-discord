@@ -38,6 +38,8 @@ class DiscordBot extends Adapter
               if user.status != "offline"
                 @robot.logger.info "reset user #{user.name}: #{user.status} -> offline"
                 user.status = "offline"
+            #read online users back in
+            readOnlineUsersWhenReady(@robot)
 
      run: ->
         @options =
@@ -52,6 +54,19 @@ class DiscordBot extends Adapter
 
         @client.login(@options.token).catch(@robot.logger.error)
 
+     #Read online users in, but only after being called the 2nd time
+     readOnlineUsersWhenReady = (robot, client) =>
+        @client = client if client?
+        if @alreadyCalledOnce?
+          @client.users.forEach (u, k) =>
+            unless u.presence.status == "offline" || u.id == @client.user.id
+              robot.logger.info "#{u.username} is already logged in"
+              user = robot.brain.userForId u.id
+              user.name = u.username
+              user.discriminator = u.discriminator
+              user.id = u.id
+              user.status = u.presence.status
+        @alreadyCalledOnce = true
 
      ready: =>
         @robot.logger.info "Logged in: #{@client.user.username}##{@client.user.discriminator}"
@@ -60,13 +75,7 @@ class DiscordBot extends Adapter
         @emit "connected"
 
         #post-connect actions
-        @client.users.forEach (u, k) =>
-          unless u.presence.status == "offline" || u.id == @client.user.id
-            user = @robot.brain.userForId u.id
-            user.name = u.username
-            user.discriminator = u.discriminator
-            user.id = u.id
-            user.status = u.presence.status
+        readOnlineUsersWhenReady(@robot, @client)
 
         @rooms[channel.id] = channel for channel in @client.channels
         @client.user.setGame(currentlyPlaying)
